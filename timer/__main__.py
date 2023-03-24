@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import re
 import sys
 import time
 from datetime import datetime
 
+import click
 from art import text2art
 from rich.align import Align
 from rich.console import Console
@@ -17,6 +19,7 @@ TEXT_COLOUR_MID_PERCENT = "yellow"
 TEXT_COLOUR_LOW_PERCENT = "red"
 TIMER_HIGH_PERCENT = 0.5
 TIMER_LOW_PERCENT = 0.2
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
 def standardize_time_str(num):
@@ -40,23 +43,47 @@ def createTimeString(hrs, mins, secs):
     return time_string
 
 
-console = Console()
+def parseDurationString(duration_str):
+    duration_regex = re.compile(r"([0-9]{1,2}h)?([0-9]{1,2}m)?([0-9]{1,2}s)?")
+    match = duration_regex.match(duration_str)
+    if any(match.groups()):
+        return True, match.groups()
+
+    return False, f"Invalid duration string: {duration_str}"
 
 
-def main():
-    hours = 0
-    minutes = 0
-    seconds = 8 + 1
+@click.command(context_settings=CONTEXT_SETTINGS)
+@click.argument('duration', type=str)
+def main(duration):
+    """
+    DURATION is the duration of your timer, a number followed by h or m or s for hours, minutes or seconds
+
+    \b
+    Example usage:
+        $ timer 1h30m
+        $ timer 25m
+        $ timer 15m30s
+    """
+    console = Console()
+
+    success, res = parseDurationString(duration)
+    if not success:
+        console.print(res, style="red")
+        sys.exit(1)
+
+    hours = int(res[0][:-1]) if res[0] else 0
+    minutes = int(res[1][:-1]) if res[1] else 0
+    seconds = int(res[2][:-1]) + 1 if res[2] else 0
 
     countdown_time_string = createTimeString(hours, minutes, seconds - 1)
     countdown_time_text = Text(
-        text2art(countdown_time_string, font=FONT), style="bold white")
+        text2art(countdown_time_string, font=FONT), style=TEXT_COLOUR_HIGH_PERCENT)
 
     display_time = Align.center(countdown_time_text,
                                 vertical="middle", height=console.height + 1)
 
     start_time = time.time()
-    target_time = start_time + (hours * 60 * minutes) * 60 + seconds
+    target_time = start_time + (hours * 3600) + (minutes * 60) + seconds
 
     time_difference_secs = target_time - start_time - 1
 
@@ -65,7 +92,7 @@ def main():
             while round(target_time) > round(time.time()):
                 remaining_time = target_time - time.time() - 1
                 remaining_time_string = createTimeString(
-                    remaining_time // 3600, remaining_time // 60, remaining_time % 60)
+                    remaining_time // 3600, (remaining_time // 60) % 60, remaining_time % 60)
                 remaining_time_text = Text(
                     text2art(remaining_time_string, font=FONT))
 
