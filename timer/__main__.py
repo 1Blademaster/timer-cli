@@ -19,17 +19,17 @@ TEXT_COLOUR_MID_PERCENT = "yellow"
 TEXT_COLOUR_LOW_PERCENT = "red"
 TIMER_HIGH_PERCENT = 0.5
 TIMER_LOW_PERCENT = 0.2
-CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
 def standardize_time_str(num):
     num = round(num)
     if num <= 0:
-        return '00'
+        return "00"
 
     time_str = str(num)
     if len(time_str) == 1:
-        time_str = f'0{time_str}'
+        time_str = f"0{time_str}"
 
     return time_str
 
@@ -53,8 +53,8 @@ def parseDurationString(duration_str):
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)
-@click.version_option(prog_name='timer-cli', package_name="timer-cli")
-@click.argument('duration', type=str)
+@click.version_option(prog_name="timer-cli", package_name="timer-cli")
+@click.argument("duration", type=str)
 def main(duration):
     """
     DURATION is the duration of your timer, a number followed by h or m or s for hours, minutes or seconds
@@ -78,10 +78,12 @@ def main(duration):
 
     countdown_time_string = createTimeString(hours, minutes, seconds - 1)
     countdown_time_text = Text(
-        text2art(countdown_time_string, font=FONT), style=TEXT_COLOUR_HIGH_PERCENT)
+        text2art(countdown_time_string, font=FONT), style=TEXT_COLOUR_HIGH_PERCENT
+    )
 
-    display_time = Align.center(countdown_time_text,
-                                vertical="middle", height=console.height + 1)
+    display_time = Align.center(
+        countdown_time_text, vertical="middle", height=console.height + 1
+    )
 
     start_time = time.time()
     target_time = start_time + (hours * 3600) + (minutes * 60) + seconds
@@ -93,7 +95,10 @@ def main(duration):
             while round(target_time) > round(time.time()):
                 remaining_time = target_time - time.time() - 1
                 remaining_time_string = createTimeString(
-                    remaining_time // 3600, (remaining_time // 60) % 60, remaining_time % 60)
+                    remaining_time // 3600,
+                    (remaining_time // 60) % 60,
+                    remaining_time % 60,
+                )
                 remaining_time_text = Text(
                     text2art(remaining_time_string, font=FONT))
 
@@ -101,13 +106,16 @@ def main(duration):
 
                 if TIMER_HIGH_PERCENT < time_difference_percentage <= 1:
                     remaining_time_text.stylize(TEXT_COLOUR_HIGH_PERCENT)
-                elif TIMER_LOW_PERCENT < time_difference_percentage <= TIMER_HIGH_PERCENT:
+                elif (
+                    TIMER_LOW_PERCENT < time_difference_percentage <= TIMER_HIGH_PERCENT
+                ):
                     remaining_time_text.stylize(TEXT_COLOUR_MID_PERCENT)
                 else:
                     remaining_time_text.stylize(TEXT_COLOUR_LOW_PERCENT)
 
-                display_time = Align.center(remaining_time_text,
-                                            vertical="middle", height=console.height + 1)
+                display_time = Align.center(
+                    remaining_time_text, vertical="middle", height=console.height + 1
+                )
 
                 time.sleep(0.5)
                 live.update(display_time)
