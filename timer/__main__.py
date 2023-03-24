@@ -53,6 +53,7 @@ def parseDurationString(duration_str):
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)
+@click.version_option(prog_name='timer-cli', package_name="timer-cli")
 @click.argument('duration', type=str)
 def main(duration):
     """
