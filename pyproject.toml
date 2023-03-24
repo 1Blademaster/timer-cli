@@ -1,14 +1,17 @@
 [tool.poetry]
 name = "timer-cli"
 version = "0.1.0"
-description = ""
-authors = ["1Blademaster <kush.makkapati@icloud.com>"]
+description = "A simple CLI tool for starting a countdown timer."
+license = "Apache-2.0"
+authors = ["Kush Makkapati <kush.makkapati@icloud.com>"]
 readme = "README.md"
-packages = [{include = "timer_cli"}]
+repository = "https://github.com/1Blademaster/timer-cli"
+packages = [{include = "timer"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
-
+python = "^3.7"
+rich = "^13.3.2"
+art = "^5.9"
 
 [build-system]
 requires = ["poetry-core"]

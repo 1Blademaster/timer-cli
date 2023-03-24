@@ -95,3 +95,7 @@ def main():
     except KeyboardInterrupt:
         console.print("[red]Quitting...[/red]")
         sys.exit()
+
+
+if __name__ == "__main__":
+    main()
