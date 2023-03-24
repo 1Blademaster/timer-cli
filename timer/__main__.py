@@ -49,7 +49,7 @@ def parseDurationString(duration_str):
     if any(match.groups()):
         return True, match.groups()
 
-    return False, f"Invalid duration string: {duration_str}"
+    return False, f"Invalid duration string: {duration_str} \n\nPlease use the format __h__m__s or view the help for example usage."
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)
@@ -69,7 +69,7 @@ def main(duration):
 
     success, res = parseDurationString(duration)
     if not success:
-        console.print(res, style="red")
+        console.print(f"[red]{res}[/red]")
         sys.exit(1)
 
     hours = int(res[0][:-1]) if res[0] else 0
