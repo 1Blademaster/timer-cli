@@ -67,7 +67,7 @@ def main(duration):
     """
     console = Console()
 
-    if not duration.strip():
+    if not duration or not duration.strip():
         console.print(
             f'[red]Please specify a timer duration. \n\nPlease use the format __h__m__s or view the help for example usage.[/red]')
         sys.exit(1)
