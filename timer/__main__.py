@@ -54,7 +54,7 @@ def parseDurationString(duration_str):
 
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.version_option(prog_name="timer-cli", package_name="timer-cli")
-@click.argument("duration", type=str)
+@click.argument("duration", type=str, required=False)
 def main(duration):
     """
     DURATION is the duration of your timer, a number followed by h or m or s for hours, minutes or seconds
@@ -67,7 +67,12 @@ def main(duration):
     """
     console = Console()
 
-    success, res = parseDurationString(duration)
+    if not duration.strip():
+        console.print(
+            f'[red]Please specify a timer duration. \n\nPlease use the format __h__m__s or view the help for example usage.[/red]')
+        sys.exit(1)
+
+    success, res = parseDurationString(duration.strip())
     if not success:
         console.print(f"[red]{res}[/red]")
         sys.exit(1)
