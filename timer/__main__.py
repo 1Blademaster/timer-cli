@@ -62,7 +62,13 @@ def parseDurationString(
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.version_option(prog_name="timer-cli", package_name="timer-cli")
 @click.argument("duration", type=str, required=False)
-def main(duration: Optional[str]) -> None:
+@click.option(
+    "--no-bell",
+    default=False,
+    is_flag=True,
+    help="Do not ring the terminal bell once the timer is over",
+)
+def main(duration: Optional[str], no_bell: bool) -> None:
     """
     DURATION is the duration of your timer, a number followed by h or m or s for hours, minutes or seconds
 
@@ -88,6 +94,10 @@ def main(duration: Optional[str]) -> None:
     hours = int(res[0][:-1]) if res[0] else 0
     minutes = int(res[1][:-1]) if res[1] else 0
     seconds = int(res[2][:-1]) + 1 if res[2] else 0
+
+    if hours == 0 and minutes == 0 and seconds - 1 <= 0:
+        console.print(f"[red]The timer duration cannot be zero.[/red]")
+        sys.exit(1)
 
     countdown_time_string = createTimeString(hours, minutes, seconds - 1)
     countdown_time_text = Text(
@@ -134,7 +144,8 @@ def main(duration: Optional[str]) -> None:
 
         with console.screen(style="bold white on red") as screen:
             while True:
-                console.bell()
+                if not no_bell:
+                    console.bell()
                 timer_over_text = Text(text2art("00:00:00", font=FONT), style="blink")
                 text = Align.center(timer_over_text, vertical="middle")
                 screen.update(Panel(text))
