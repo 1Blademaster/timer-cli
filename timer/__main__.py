@@ -3,26 +3,28 @@
 import re
 import sys
 import time
-from datetime import datetime
+from typing import List, Optional, Tuple, Union
 
 import click
-from art import text2art
+from art import text2art  # type: ignore
 from rich.align import Align
 from rich.console import Console
 from rich.live import Live
 from rich.panel import Panel
 from rich.text import Text
 
-FONT = "c1"
-TEXT_COLOUR_HIGH_PERCENT = "green"
-TEXT_COLOUR_MID_PERCENT = "yellow"
-TEXT_COLOUR_LOW_PERCENT = "red"
-TIMER_HIGH_PERCENT = 0.5
-TIMER_LOW_PERCENT = 0.2
-CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+FONT: str = "c1"
+TEXT_COLOUR_HIGH_PERCENT: str = "green"
+TEXT_COLOUR_MID_PERCENT: str = "yellow"
+TEXT_COLOUR_LOW_PERCENT: str = "red"
+TIMER_HIGH_PERCENT: float = 0.5
+TIMER_LOW_PERCENT: float = 0.2
+CONTEXT_SETTINGS: dict = dict(help_option_names=["-h", "--help"])
+
+Number = Union[int, float]
 
 
-def standardize_time_str(num):
+def standardize_time_str(num: Number) -> str:
     num = round(num)
     if num <= 0:
         return "00"
@@ -34,7 +36,7 @@ def standardize_time_str(num):
     return time_str
 
 
-def createTimeString(hrs, mins, secs):
+def createTimeString(hrs: Number, mins: Number, secs: Number) -> str:
     time_hrs = standardize_time_str(hrs)
     time_mins = standardize_time_str(mins)
     time_secs = standardize_time_str(secs)
@@ -43,19 +45,24 @@ def createTimeString(hrs, mins, secs):
     return time_string
 
 
-def parseDurationString(duration_str):
+def parseDurationString(
+    duration_str: str,
+) -> Tuple[bool, Union[List[Optional[str]], str]]:
     duration_regex = re.compile(r"([0-9]{1,2}h)?([0-9]{1,2}m)?([0-9]{1,2}s)?")
     match = duration_regex.match(duration_str)
-    if any(match.groups()):
-        return True, match.groups()
+    if match and any(match.groups()):
+        return True, list(match.groups())
 
-    return False, f"Invalid duration string: {duration_str} \n\nPlease use the format __h__m__s or view the help for example usage."
+    return (
+        False,
+        f"Invalid duration string: {duration_str} \n\nPlease use the format __h__m__s or view the help for example usage.",
+    )
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.version_option(prog_name="timer-cli", package_name="timer-cli")
 @click.argument("duration", type=str, required=False)
-def main(duration):
+def main(duration: Optional[str]) -> None:
     """
     DURATION is the duration of your timer, a number followed by h or m or s for hours, minutes or seconds
 
@@ -69,7 +76,8 @@ def main(duration):
 
     if not duration or not duration.strip():
         console.print(
-            f'[red]Please specify a timer duration. \n\nPlease use the format __h__m__s or view the help for example usage.[/red]')
+            f"[red]Please specify a timer duration. \n\nPlease use the format __h__m__s or view the help for example usage.[/red]"
+        )
         sys.exit(1)
 
     success, res = parseDurationString(duration.strip())
@@ -104,8 +112,7 @@ def main(duration):
                     (remaining_time // 60) % 60,
                     remaining_time % 60,
                 )
-                remaining_time_text = Text(
-                    text2art(remaining_time_string, font=FONT))
+                remaining_time_text = Text(text2art(remaining_time_string, font=FONT))
 
                 time_difference_percentage = remaining_time / time_difference_secs
 
@@ -128,8 +135,7 @@ def main(duration):
         with console.screen(style="bold white on red") as screen:
             while True:
                 console.bell()
-                timer_over_text = Text(
-                    text2art("00:00:00", font=FONT), style="blink")
+                timer_over_text = Text(text2art("00:00:00", font=FONT), style="blink")
                 text = Align.center(timer_over_text, vertical="middle")
                 screen.update(Panel(text))
                 time.sleep(10)
