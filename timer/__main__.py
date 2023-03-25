@@ -8,10 +8,11 @@ from typing import List, Optional, Tuple, Union
 import click
 from art import text2art  # type: ignore
 from rich.align import Align
-from rich.console import Console
+from rich.console import Console, Group
 from rich.live import Live
 from rich.panel import Panel
 from rich.text import Text
+from rich.measure import Measurement
 
 FONT: str = "c1"
 TEXT_COLOUR_HIGH_PERCENT: str = "green"
@@ -63,12 +64,20 @@ def parseDurationString(
 @click.version_option(prog_name="timer-cli", package_name="timer-cli")
 @click.argument("duration", type=str, required=False)
 @click.option(
+    "-m",
+    "--message",
+    type=str,
+    required=False,
+    default="",
+    help="The message to display under the timer",
+)
+@click.option(
     "--no-bell",
     default=False,
     is_flag=True,
     help="Do not ring the terminal bell once the timer is over",
 )
-def main(duration: Optional[str], no_bell: bool) -> None:
+def main(duration: Optional[str], no_bell: bool, message: str) -> None:
     """
     DURATION is the duration of your timer, a number followed by h or m or s for hours, minutes or seconds
 
@@ -104,9 +113,17 @@ def main(duration: Optional[str], no_bell: bool) -> None:
         text2art(countdown_time_string, font=FONT), style=TEXT_COLOUR_HIGH_PERCENT
     )
 
-    display_time = Align.center(
-        countdown_time_text, vertical="middle", height=console.height + 1
+    message_text = Text(message, style="cyan")
+    message_text.align(
+        "center",
+        Measurement.get(console, console.options, countdown_time_text)
+        .normalize()
+        .maximum,
     )
+
+    display_text = Text.assemble(countdown_time_text, message_text)
+
+    display = Align.center(display_text, vertical="middle", height=console.height + 1)
 
     start_time = time.time()
     target_time = start_time + (hours * 3600) + (minutes * 60) + seconds
@@ -114,7 +131,7 @@ def main(duration: Optional[str], no_bell: bool) -> None:
     time_difference_secs = target_time - start_time - 1
 
     try:
-        with Live(display_time, screen=True) as live:
+        with Live(display, screen=True) as live:
             while round(target_time) > round(time.time()):
                 remaining_time = target_time - time.time() - 1
                 remaining_time_string = createTimeString(
@@ -139,16 +156,43 @@ def main(duration: Optional[str], no_bell: bool) -> None:
                     remaining_time_text, vertical="middle", height=console.height + 1
                 )
 
+                message_text = Text(message, style="cyan")
+                message_text.align(
+                    "center",
+                    Measurement.get(console, console.options, remaining_time_text)
+                    .normalize()
+                    .maximum,
+                )
+
+                display_text = Text.assemble(remaining_time_text, message_text)
+
+                display = Align.center(
+                    display_text, vertical="middle", height=console.height + 1
+                )
+
                 time.sleep(0.5)
-                live.update(display_time)
+                live.update(display)
 
         with console.screen(style="bold white on red") as screen:
             while True:
                 if not no_bell:
                     console.bell()
+
                 timer_over_text = Text(text2art("00:00:00", font=FONT), style="blink")
-                text = Align.center(timer_over_text, vertical="middle")
-                screen.update(Panel(text))
+                message_text = Text(message, style="white")
+                message_text.align(
+                    "center",
+                    Measurement.get(console, console.options, timer_over_text)
+                    .normalize()
+                    .maximum,
+                )
+
+                display_text = Text.assemble(timer_over_text, message_text)
+
+                display = Align.center(
+                    display_text, vertical="middle", height=console.height + 1
+                )
+                screen.update(Panel(display))
                 time.sleep(10)
     except KeyboardInterrupt:
         console.print("[red]Quitting...[/red]")

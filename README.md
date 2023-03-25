@@ -34,6 +34,14 @@ Syntax for a duration is `__h__m__s` where the hour, minute and second values ar
 
 Supplying the `--no-bell` flag will stop the terminal from "ringing the bell" (making a sound) once the timer has finished.
 
+#### -m, --message
+
+Use this flag to specify a message to display under the timer. Make sure to surround your string with quotation marks.
+
+```bash
+$ timer 1h30m -m "Review the pull requests"
+```
+
 ## Contributing
 
 Contributions are always welcome!
@@ -49,3 +57,7 @@ If you have a suggestion that would make this better, please fork the repo and c
 ## License
 
 This code is distributed under the [Apache-2.0](https://choosealicense.com/licenses/apache-2.0/) license. See `LICENSE` for more information.
+
+```
+
+```
