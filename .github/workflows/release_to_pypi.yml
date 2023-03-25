@@ -1,4 +1,4 @@
-name: Publish ${package_name} to PyPI / GitHub
+name: Publish timer-cli to PyPI / GitHub
 
 on:
   push:
@@ -26,10 +26,10 @@ jobs:
       - name: Install venv
         run: poetry install
 
-      - run: poetry config repositories.testpypi https://test.pypi.org/legacy/
-      - run: poetry config pypi-token.testpypi ${{ secrets.TEST_PYPI_API_KEY }}
+      - run: poetry config pypi-token.pypi "${{ secrets.PYPI_API_KEY }}"
+
       - name: Publish package
-        run: poetry publish --build -r testpypi
+        run: poetry publish --build
 
       - name: Create GitHub Release
         id: create_release
