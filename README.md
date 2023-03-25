@@ -2,7 +2,7 @@
 
 A very simple Python CLI tool to start a countdown timer.
 
-![Example sreenshot](https://github.com/1Blademaster/timer-cli/blob/main/images/screenshot.png)
+![Example sreenshot](https://raw.githubusercontent.com/1Blademaster/timer-cli/main/images/screenshot.png)
 
 ## Installation
 
