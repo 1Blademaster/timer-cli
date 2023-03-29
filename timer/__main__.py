@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import math
 import re
 import sys
 import time
@@ -125,15 +126,20 @@ def main(duration: Optional[str], no_bell: bool, message: str) -> None:
 
     display = Align.center(display_text, vertical="middle", height=console.height + 1)
 
-    start_time = time.time()
+    start_time = math.floor(time.time())
+
     target_time = start_time + (hours * 3600) + (minutes * 60) + seconds
+
+    if seconds != 0:
+        target_time -= 1
 
     time_difference_secs = target_time - start_time - 1
 
     try:
         with Live(display, screen=True) as live:
+            time.sleep(1)
             while round(target_time) > round(time.time()):
-                remaining_time = target_time - time.time() - 1
+                remaining_time = math.floor(target_time) - math.floor(time.time())
                 remaining_time_string = createTimeString(
                     remaining_time // 3600,
                     (remaining_time // 60) % 60,
@@ -170,8 +176,8 @@ def main(duration: Optional[str], no_bell: bool, message: str) -> None:
                     display_text, vertical="middle", height=console.height + 1
                 )
 
-                time.sleep(0.5)
                 live.update(display)
+                time.sleep(1)
 
         with console.screen(style="bold white on red") as screen:
             while True:
