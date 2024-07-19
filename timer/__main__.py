@@ -4,6 +4,8 @@ import math
 import re
 import sys
 import time
+from datetime import datetime
+import sqlite3
 from typing import List, Optional, Tuple, Union
 
 import click
@@ -134,6 +136,26 @@ def main(duration: Optional[str], no_bell: bool, message: str) -> None:
         target_time -= 1
 
     time_difference_secs = target_time - start_time - 1
+
+    #TODO: add time + message in timer_personal_logs.db
+    # - in SQLite DB
+    # OR in text file
+    # OR send it somewhere for me
+
+    conn = sqlite3.connect('timer_personal_logs.db')
+    cursor = conn.cursor()
+    sql_query = '''
+        INSERT INTO timer_personal_logs (timestamp, duration, message)
+        VALUES (?, ?, ?)
+    '''
+
+    try:
+        cursor.execute(sql_query, (datetime.now(), countdown_time_string, message_text))
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+    finally:
+        conn.close()
 
     try:
         with Live(display, screen=True) as live:
