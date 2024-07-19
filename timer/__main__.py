@@ -138,9 +138,8 @@ def main(duration: Optional[str], no_bell: bool, message: str) -> None:
     time_difference_secs = target_time - start_time - 1
 
     #TODO: add time + message in timer_personal_logs.db
-    # - in SQLite DB
     # OR in text file
-    # OR send it somewhere for me
+    # OR send it somewhere (Slack, obsidian, Gdrive, Notion)
 
     conn = sqlite3.connect('timer_personal_logs.db')
     cursor = conn.cursor()
@@ -148,7 +147,7 @@ def main(duration: Optional[str], no_bell: bool, message: str) -> None:
         CREATE TABLE IF NOT EXISTS task_logs (timestamp TEXT, duration TEXT, message TEXT);
     '''
     insert_query = '''
-        INSERT INTO task_logs (timestamp, duration, message) VALUES (datetime('now'), ?, ?)
+        INSERT INTO task_logs (timestamp, duration, message) VALUES (datetime('now', 'localtime'), ?, ?)
     '''
 
     try:

@@ -57,9 +57,15 @@ If you have a suggestion that would make this better, please fork the repo and c
 ## Development
 
 #### How to start locally:
-1) Install deps - `poetry install`
-2) Build the project with your changes - `poetry build`
-2) Run the project `poetry run timer -m "%message here%" 1m`
+- Build the project with your changes - `poetry build`
+- Install deps - `poetry install`
+- Run the project `poetry run timer -m "%message here%" 1m`
+- Repeat each time you make changes
+
+###### more traditional way to start:
+- (optional) Init your venv - `python -m venv venv`
+- (optional) Activate your venv - `source venv/bin/activate`
+- Run timer with the flags - `python timer/__main__.py -m 'test message for local dev' 1h38m`
 
 ## License
 
