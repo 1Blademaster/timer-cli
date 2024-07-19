@@ -54,6 +54,13 @@ If you have a suggestion that would make this better, please fork the repo and c
 - Push to the Branch (`git push origin feature/AmazingFeature`)
 - Open a Pull Request
 
+## Development
+
+#### How to start locally:
+1) Install deps - `poetry install`
+2) Build the project with your changes - `poetry build`
+2) Run the project `poetry run timer -m "%message here%" 1m`
+
 ## License
 
 This code is distributed under the [Apache-2.0](https://choosealicense.com/licenses/apache-2.0/) license. See `LICENSE` for more information.
