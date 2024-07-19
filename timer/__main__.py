@@ -2,9 +2,9 @@
 
 import math
 import re
+import os
 import sys
 import time
-from datetime import datetime
 import sqlite3
 from typing import List, Optional, Tuple, Union
 
@@ -141,8 +141,11 @@ def main(duration: Optional[str], no_bell: bool, message: str) -> None:
     # OR in text file
     # OR send it somewhere (Slack, obsidian, Gdrive, Notion)
 
-    conn = sqlite3.connect('timer_personal_logs.db')
+    home_dir = os.path.expanduser("~")
+    db_path = os.path.join(home_dir, "timer_cli_personal_logs.db")
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
+
     create_query = '''
         CREATE TABLE IF NOT EXISTS task_logs (timestamp TEXT, duration TEXT, message TEXT);
     '''
