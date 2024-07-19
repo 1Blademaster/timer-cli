@@ -148,12 +148,12 @@ def main(duration: Optional[str], no_bell: bool, message: str) -> None:
         CREATE TABLE IF NOT EXISTS task_logs (timestamp TEXT, duration TEXT, message TEXT);
     '''
     insert_query = '''
-        INSERT INTO task_logs (timestamp, duration, message) VALUES (datetime('now'), "LOLs", "KEKS")
+        INSERT INTO task_logs (timestamp, duration, message) VALUES (datetime('now'), ?, ?)
     '''
 
     try:
         cursor.execute(create_query)
-        cursor.execute(insert_query)
+        cursor.execute(insert_query, (countdown_time_string, message))
         conn.commit()
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
