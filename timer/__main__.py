@@ -144,16 +144,17 @@ def main(duration: Optional[str], no_bell: bool, message: str) -> None:
 
     conn = sqlite3.connect('timer_personal_logs.db')
     cursor = conn.cursor()
-    sql_query = '''
-        CREATE TABLE IF NOT EXISTS task_logs (timestamp: DATETIME, duration: SMALLTEXT, message: TEXT);
-        INSERT INTO task_logs (timestamp, duration, message)
-        VALUES (?, ?, ?)
+    create_query = '''
+        CREATE TABLE IF NOT EXISTS task_logs (timestamp TEXT, duration TEXT, message TEXT);
+    '''
+    insert_query = '''
+        INSERT INTO task_logs (timestamp, duration, message) VALUES (datetime('now'), "LOLs", "KEKS")
     '''
 
     try:
-        cursor.execute(sql_query, (datetime.now(), countdown_time_string, message_text))
-        result = conn.commit()
-        print(f'Result {result}')
+        cursor.execute(create_query)
+        cursor.execute(insert_query)
+        conn.commit()
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
     finally:
