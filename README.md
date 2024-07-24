@@ -42,6 +42,12 @@ Use this flag to specify a message to display under the timer. Make sure to surr
 $ timer 1h30m -m "Review the pull requests"
 ```
 
+### Logs
+
+Every timer you start will be logged and inserted in a DB (SQLite).
+Feel free to access this file with any DB management app.
+File's location: `$HOME/timer_cli_personal_logs.db`
+
 ## Contributing
 
 Contributions are always welcome!
