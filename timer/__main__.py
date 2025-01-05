@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import math
 import re
 import sys
@@ -15,7 +16,7 @@ from rich.panel import Panel
 from rich.text import Text
 from rich.measure import Measurement
 
-FONT: str = "c1"
+FONT: str = os.environ.get("TIMER_FONT", "c1")
 TEXT_COLOUR_HIGH_PERCENT: str = "green"
 TEXT_COLOUR_MID_PERCENT: str = "yellow"
 TEXT_COLOUR_LOW_PERCENT: str = "red"
