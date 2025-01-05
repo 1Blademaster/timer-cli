@@ -3,8 +3,10 @@
 import os
 import math
 import re
+import os
 import sys
 import time
+import sqlite3
 from typing import List, Optional, Tuple, Union
 
 import click
@@ -135,6 +137,31 @@ def main(duration: Optional[str], no_bell: bool, message: str) -> None:
         target_time -= 1
 
     time_difference_secs = target_time - start_time - 1
+
+    #TODO: add time + message in timer_personal_logs.db
+    # OR in text file
+    # OR send it somewhere (Slack, obsidian, Gdrive, Notion)
+
+    home_dir = os.path.expanduser("~")
+    db_path = os.path.join(home_dir, "timer_cli_personal_logs.db")
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    create_query = '''
+        CREATE TABLE IF NOT EXISTS task_logs (timestamp TEXT, duration TEXT, message TEXT);
+    '''
+    insert_query = '''
+        INSERT INTO task_logs (timestamp, duration, message) VALUES (datetime('now', 'localtime'), ?, ?)
+    '''
+
+    try:
+        cursor.execute(create_query)
+        cursor.execute(insert_query, (countdown_time_string, message))
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+    finally:
+        conn.close()
 
     try:
         with Live(display, screen=True) as live:
