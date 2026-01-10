@@ -35,6 +35,12 @@ timer 2026-01-25T14:00
 timer T14:00
 ```
 
+### Updated examples
+
+- 2min 40mins - `165m`
+- 10hrs 50 mins - `650m`
+- you can do 999h or 999s as well
+
 ### Options
 
 #### --no-bell

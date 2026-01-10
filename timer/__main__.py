@@ -92,7 +92,8 @@ def datetime_to_hms(target_dt: datetime) -> tuple[int, int, int]:
 def parseDurationString(
     duration_str: str,
 ) -> Tuple[bool, Union[List[Optional[str]], str]]:
-    duration_regex = re.compile(r"([0-9]{1,2}h)?([0-9]{1,2}m)?([0-9]{1,2}s)?")
+    # Updated regex to allow more digits for hours, minutes, and seconds
+    duration_regex = re.compile(r"([0-9]+h)?([0-9]+m)?([0-9]+s)?")
     match = duration_regex.match(duration_str)
     if match and any(match.groups()):
         return True, list(match.groups())
