@@ -8,6 +8,15 @@ import time
 from typing import List, Optional, Tuple, Union
 from datetime import datetime, timedelta
 
+IS_WINDOWS = os.name == "nt"
+ENABLE_INPUT = not IS_WINDOWS
+
+if ENABLE_INPUT:
+    import termios
+    import tty
+    import select
+from contextlib import contextmanager
+
 import click
 from art import text2art  # type: ignore
 from art import FONT_NAMES
@@ -29,6 +38,28 @@ CONTEXT_SETTINGS: dict = dict(help_option_names=["-h", "--help"])
 
 Number = Union[int, float]
 
+if ENABLE_INPUT:
+    @contextmanager
+    def raw_stdin():
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setcbreak(fd)
+            yield
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+
+    def read_key_nonblocking() -> str | None:
+        if select.select([sys.stdin], [], [], 0)[0]:
+            return sys.stdin.read(1)
+        return None
+else:
+    @contextmanager
+    def raw_stdin():
+        yield
+
+    def read_key_nonblocking() -> None:
+        return None
 
 def standardize_time_str(num: Number) -> str:
     num = round(num)
@@ -50,6 +81,10 @@ def createTimeString(hrs: Number, mins: Number, secs: Number) -> str:
 
     return time_string
 
+def createDateString(hrs: Number, mins: Number, secs: Number) -> str:
+    total_seconds = hrs * 3600 + mins * 60 + secs
+    days = total_seconds / 86400  # 24 * 60 * 60
+    return f"{days:.2f} Days"
 
 def try_parse_target_datetime(s: str) -> datetime | None:
     now = datetime.now()
@@ -121,6 +156,12 @@ def parseDurationString(
     help="Do not ring the terminal bell once the timer is over",
 )
 @click.option(
+    "--days",
+    default=False,
+    is_flag=True,
+    help="To show the timer in days",
+)
+@click.option(
     "--font",
     type=str,
     default=DEFAULT_FONT,
@@ -132,7 +173,7 @@ def parseDurationString(
     is_flag=True,
     help="List available fonts and exit",
 )
-def main(duration: Optional[str], no_bell: bool, message: str, font: str, list_fonts: bool) -> None:
+def main(duration: Optional[str], no_bell: bool, message: str, font: str, list_fonts: bool, days: bool) -> None:
     """
     \b
     DURATION is the duration of your timer. It can be either:
@@ -218,51 +259,58 @@ def main(duration: Optional[str], no_bell: bool, message: str, font: str, list_f
 
         hours = int(res[0][:-1]) if res[0] else 0
         minutes = int(res[1][:-1]) if res[1] else 0
-        seconds = int(res[2][:-1]) + 1 if res[2] else 0
+        seconds = int(res[2][:-1]) if res[2] else 0
 
-    if hours == 0 and minutes == 0 and seconds - 1 <= 0:
+    if hours == 0 and minutes == 0 and seconds == 0:
         console.print(f"[red]The timer duration cannot be zero.[/red]")
         sys.exit(1)
 
-    countdown_time_string = createTimeString(hours, minutes, seconds - 1)
-    countdown_time_text = Text(
-        text2art(countdown_time_string, font=font).rstrip("\n"), style=TEXT_COLOUR_HIGH_PERCENT
-    )
-
-    message_text = Text(message, style="cyan")
-    message_text.align(
-        "center",
-        Measurement.get(console, console.options, countdown_time_text)
-        .normalize()
-        .maximum,
-    )
-
-    display_text = Text.assemble(countdown_time_text, Text("\n"), message_text)
-
-    display = Align.center(display_text, vertical="middle", height=console.height + 1)
-
-    start_time = math.floor(time.time())
+    start_time = time.time()
 
     target_time = start_time + (hours * 3600) + (minutes * 60) + seconds
+    initial_duration = target_time - start_time
 
-    if seconds != 0:
-        target_time -= 1
+    paused = False
+    in_days = days
+    paused_at = None
+    last_remaining_time = None
 
-    time_difference_secs = target_time - start_time - 1
-
+    initial_display = Align.center(Text(" "), vertical="middle", height=console.height + 1)
     try:
-        with Live(display, screen=True) as live:
-            time.sleep(1)
-            while round(target_time) > round(time.time()):
-                remaining_time = math.floor(target_time) - math.floor(time.time())
-                remaining_time_string = createTimeString(
-                    remaining_time // 3600,
-                    (remaining_time // 60) % 60,
-                    remaining_time % 60,
-                )
+        with raw_stdin(), Live(initial_display, screen=True) as live:
+            while True:
+                now = time.time()
+                
+                if ENABLE_INPUT:
+                    key = read_key_nonblocking()
+                    if key == " ":
+                        if not paused:
+                            paused = True
+                            paused_at = now
+                        else:
+                            paused = False
+                            target_time += now - paused_at
+                    elif key == "d":
+                        in_days = not in_days
+
+                if paused:
+                    remaining_time = max(0, math.ceil(target_time - paused_at))
+                else:
+                    remaining_time = max(0, math.ceil(target_time - now))
+
+                if in_days:
+                    days = remaining_time/86400 # 24 * 60 * 60
+                    label = "Day" if round(days, 2) == 1 else "Days"
+                    remaining_time_string = f"{days:.2f} {label}"
+                else:
+                    remaining_time_string = createTimeString(
+                        remaining_time // 3600,
+                        (remaining_time // 60) % 60,
+                        remaining_time % 60,
+                    )
                 remaining_time_text = Text(text2art(remaining_time_string, font=font).rstrip("\n"))
 
-                time_difference_percentage = remaining_time / time_difference_secs
+                time_difference_percentage = remaining_time / initial_duration
 
                 if TIMER_HIGH_PERCENT < time_difference_percentage <= 1:
                     remaining_time_text.stylize(TEXT_COLOUR_HIGH_PERCENT)
@@ -273,9 +321,8 @@ def main(duration: Optional[str], no_bell: bool, message: str, font: str, list_f
                 else:
                     remaining_time_text.stylize(TEXT_COLOUR_LOW_PERCENT)
 
-                display_time = Align.center(
-                    remaining_time_text, vertical="middle", height=console.height + 1
-                )
+                if paused:
+                    remaining_time_text.append("\n[PAUSED — press SPACE to continue]", style="bold yellow")
 
                 message_text = Text(message, style="cyan")
                 message_text.align(
@@ -292,6 +339,9 @@ def main(duration: Optional[str], no_bell: bool, message: str, font: str, list_f
                 )
 
                 live.update(display)
+                
+                if remaining_time <= 0:
+                    break
                 time.sleep(1)
 
         with console.screen(style="bold white on red") as screen:
